@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ระบบบริการอัจฉริยะ</title>
+    <!-- ลิงก์ไฟล์ Manifest สำหรับติดตั้งเป็น PWA -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#4F46E5">
+    
+    <!-- แท็กการตั้งค่าให้รองรับการทำงานในแบบ Standalone บน iOS -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="SMARTENG">
+    <link class="ios-icon" rel="apple-touch-icon" href="icon-192.png">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-900 text-slate-100 min-h-screen p-4 flex flex-col justify-between">
+
+    <!-- ส่วนหัวใจหลัก: การ์ดตัวชี้เป้า/ส่งต่อหน้าเว็บ -->
+    <div class="max-w-md w-full bg-slate-800 border border-slate-700 p-8 rounded-3xl shadow-2xl text-center space-y-6 mx-auto my-auto">
+        <div class="w-24 h-24 rounded-3xl mx-auto flex items-center justify-center shadow-lg text-5xl" style="background-color: #4F46E5">
+            🏠
+        </div>
+        
+        <div>
+            <h1 class="text-2xl font-bold text-white">ระบบบริการอัจฉริยะ</h1>
+            <p class="text-slate-400 text-sm mt-2">เพื่อความสะดวกสูงสุด แนะนำให้ติดตั้งทางลัดนี้ลงบนหน้าจอหลักของท่าน</p>
+        </div>
+
+        <!-- แถบปุ่มช่วยเหลือแสดงให้กดติดตั้งใน Android/Chrome -->
+        <div id="install-section" class="hidden">
+            <button id="install-btn" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-4 px-6 rounded-2xl shadow-xl transition-all flex items-center justify-center space-x-2">
+                <span>➕ เพิ่มทางลัดลงหน้าจอหลัก</span>
+            </button>
+        </div>
+
+        <!-- คำแนะนำสำหรับ iPhone -->
+        <div id="ios-instruction" class="hidden p-4 bg-slate-700/50 rounded-2xl border border-slate-600 text-left space-y-2">
+            <p class="text-xs text-white font-semibold">📢 ขั้นตอนการสร้างทางลัดบน iPhone/iPad:</p>
+            <ol class="list-decimal list-inside text-xs text-slate-300 space-y-1">
+                <li>กดปุ่ม <span class="font-bold text-white">แชร์ (Share)</span> ที่ด้านล่างเบราว์เซอร์ Safari</li>
+                <li>เลื่อนลงแล้วเลือกเมนู <span class="font-bold text-indigo-400">"เพิ่มไปยังหน้าจอโฮม" (Add to Home Screen)</span></li>
+                <li>ตั้งชื่อและกดเพิ่มเพื่อเริ่มใช้ทางลัดทันที</li>
+            </ol>
+        </div>
+
+        <a href="https://supere.page.gd" id="redirect-btn" class="block w-full bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-4 px-6 rounded-2xl shadow-xl transition-all">
+            เข้าสู่เว็บไซต์ทันที
+        </a>
+    </div>
+
+    <!-- ส่วนตรวจจับปัญหาอัจฉริยะ (PWA Diagnostics Engine) สำหรับผู้สร้างเว็บ -->
+    <div class="max-w-md w-full bg-slate-950/80 border border-slate-800 p-5 rounded-2xl shadow-xl mx-auto mt-6 text-left space-y-3">
+        <div class="flex items-center justify-between border-b border-slate-800 pb-2">
+            <h4 class="text-xs font-bold text-emerald-400 tracking-wider uppercase flex items-center">
+                <span class="inline-block w-2.5 h-2.5 rounded-full bg-emerald-500 mr-1.5 animate-ping"></span>
+                PWA Live Diagnostics Panel
+            </h4>
+            <span class="text-[10px] text-slate-500 font-mono">ระบบตรวจสอบข้อกำหนด</span>
+        </div>
+        
+        <div class="space-y-2 text-xs">
+            <!-- 1. HTTPS Check -->
+            <div class="flex items-center justify-between">
+                <span class="text-slate-400">1. การเชื่อมต่อปลอดภัย (HTTPS)</span>
+                <span id="diag-https" class="font-mono font-bold text-rose-500">❌ ตรวจสอบ...</span>
+            </div>
+            <!-- 2. Service Worker Check -->
+            <div class="flex flex-col space-y-1 py-1 border-y border-slate-900">
+                <div class="flex items-center justify-between">
+                    <span class="text-slate-400">2. การลงทะเบียน Service Worker</span>
+                    <span id="diag-sw" class="font-mono font-bold text-rose-500">❌ ไม่ทำงาน</span>
+                </div>
+                <div id="diag-sw-details" class="hidden text-[10px] text-rose-400 font-mono bg-rose-950/20 p-2 rounded border border-rose-900/50 break-all leading-tight"></div>
+            </div>
+            <!-- 3. Manifest.json Check -->
+            <div class="flex items-center justify-between">
+                <span class="text-slate-400">3. ลิงก์ไฟล์ Manifest.json</span>
+                <span id="diag-manifest" class="font-mono font-bold text-yellow-500">⏳ รอทดสอบ...</span>
+            </div>
+            <!-- 4. Icons Check -->
+            <div class="flex items-center justify-between">
+                <span class="text-slate-400">4. ตรวจสอบไฟล์ไอคอน (icon-192 & 512)</span>
+                <span id="diag-icons" class="font-mono font-bold text-yellow-500">⏳ รอตรวจไฟล์...</span>
+            </div>
+            <!-- 5. Install Event Check -->
+            <div class="flex items-center justify-between">
+                <span class="text-slate-400">5. สิทธิ์จากเบราว์เซอร์ (Install Prompt)</span>
+                <span id="diag-prompt" class="font-mono font-bold text-yellow-500">⏳ รอผู้ใช้กดโต้ตอบ...</span>
+            </div>
+        </div>
+
+        <p class="text-[10px] text-slate-500 leading-relaxed border-t border-slate-800/60 pt-2 text-center">
+            *หากข้อ 1, 2, 3 หรือ 4 เป็นสีแดง ระบบเบราว์เซอร์จะไม่ยอมปล่อยสิทธิ์คำสั่งแสดงแถบปุ่มติดตั้งเด็ดขาด
+        </p>
+    </div>
+
+    <script>
+        const targetUrl = "https://supere.page.gd";
+
+        // 1. ตรวจสอบเงื่อนไข HTTPS
+        const diagHttps = document.getElementById('diag-https');
+        if (window.location.protocol === 'https:' || window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+            diagHttps.innerHTML = '✅ ผ่าน';
+            diagHttps.className = 'font-mono font-bold text-emerald-400';
+        } else {
+            diagHttps.innerHTML = '❌ ล้มเหลว (ต้องใช้ HTTPS เท่านั้น)';
+            diagHttps.className = 'font-mono font-bold text-rose-500';
+        }
+
+        // 2. ลงทะเบียนระบบ Service Worker และวิเคราะห์สถานะจริง
+        const diagSw = document.getElementById('diag-sw');
+        const diagSwDetails = document.getElementById('diag-sw-details');
+        
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('sw.js?t=' + Date.now())
+                .then(reg => {
+                    diagSw.innerHTML = '✅ เปิดใช้สำเร็จ';
+                    diagSw.className = 'font-mono font-bold text-emerald-400';
+                    diagSwDetails.classList.add('hidden');
+                    console.log('SW Registered successfully', reg);
+                })
+                .catch(err => {
+                    diagSw.innerHTML = '❌ ลงทะเบียนล้มเหลว';
+                    diagSw.className = 'font-mono font-bold text-rose-500';
+                    
+                    diagSwDetails.classList.remove('hidden');
+                    diagSwDetails.innerHTML = '<b>ข้อผิดพลาดที่พบจากเบราว์เซอร์:</b><br>' + err.name + ': ' + err.message + 
+                        '<br><br>💡 <i>คำแนะนำ: หากเกิดข้อผิดพลาด MIME type (text/html) ให้ดาวน์โหลดไฟล์ .htaccess (ไฟล์ปุ่มที่ 5) ไปอัปโหลดไว้ที่โฟลเดอร์หลักของเซิร์ฟเวอร์เพื่อแก้ไข</i>';
+                    console.error('SW Register failed', err);
+                });
+        } else {
+            diagSw.innerHTML = '❌ บราวเซอร์ไม่รองรับ PWA';
+            diagSw.className = 'font-mono font-bold text-rose-500';
+        }
+
+        // 3. ตรวจเช็ค Manifest.json
+        const diagManifest = document.getElementById('diag-manifest');
+        fetch('manifest.json')
+            .then(res => {
+                if (res.ok) {
+                    diagManifest.innerHTML = '✅ พบไฟล์';
+                    diagManifest.className = 'font-mono font-bold text-emerald-400';
+                } else {
+                    diagManifest.innerHTML = '❌ ไม่พบไฟล์ 404';
+                    diagManifest.className = 'font-mono font-bold text-rose-500';
+                }
+            })
+            .catch(() => {
+                diagManifest.innerHTML = '❌ เชื่อมต่อล้มเหลว';
+                diagManifest.className = 'font-mono font-bold text-rose-500';
+            });
+
+        // 4. ตรวจสอบไฟล์รูปไอคอนบนเซิร์ฟเวอร์จริง
+        const diagIcons = document.getElementById('diag-icons');
+        Promise.all([
+            fetch('icon-192.png').then(r => r.ok),
+            fetch('icon-512.png').then(r => r.ok)
+        ]).then(([icon192Ok, icon512Ok]) => {
+            if (icon192Ok && icon512Ok) {
+                diagIcons.innerHTML = '✅ พบครบถ้วน';
+                diagIcons.className = 'font-mono font-bold text-emerald-400';
+            } else {
+                let missing = [];
+                if (!icon192Ok) missing.push('icon-192.png');
+                if (!icon512Ok) missing.push('icon-512.png');
+                diagIcons.innerHTML = '❌ ขาดไฟล์: ' + missing.join(', ');
+                diagIcons.className = 'font-mono font-bold text-rose-500';
+            }
+        }).catch(() => {
+            diagIcons.innerHTML = '❌ ตรวจสอบไฟล์ล้มเหลว';
+            diagIcons.className = 'font-mono font-bold text-rose-500';
+        });
+
+        // 5. ตรวจจับสิทธิ์การติดตั้งจากเบราว์เซอร์
+        const diagPrompt = document.getElementById('diag-prompt');
+        let deferredPrompt;
+        const installSec = document.getElementById('install-section');
+        const installBtn = document.getElementById('install-btn');
+
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            installSec.classList.remove('hidden');
+            
+            diagPrompt.innerHTML = '✅ พร้อมติดตั้ง!';
+            diagPrompt.className = 'font-mono font-bold text-emerald-400';
+        });
+
+        installBtn.addEventListener('click', async () => {
+            if (!deferredPrompt) return;
+            deferredPrompt.prompt();
+            const { outcome } = await deferredPrompt.userChoice;
+            if (outcome === 'accepted') {
+                installSec.classList.add('hidden');
+                diagPrompt.innerHTML = '🎉 ติดตั้งเสร็จสิ้น';
+                diagPrompt.className = 'font-mono font-bold text-indigo-400';
+            }
+            deferredPrompt = null;
+        });
+
+        // คัดแยกหน้าจอเมื่อเป็น Standalone Mode
+        const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+        if (isStandalone) {
+            window.location.replace(targetUrl);
+        } else {
+            const userAgent = window.navigator.userAgent.toLowerCase();
+            const isIos = /iphone|ipad|ipod/.test(userAgent);
+            if (isIos) {
+                document.getElementById('ios-instruction').classList.remove('hidden');
+            }
+        }
+    </script>
+</body>
+</html>
