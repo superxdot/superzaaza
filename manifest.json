@@ -1,6 +1,6 @@
 {
-  "short_name": "SMARTENG",
-  "name": "ระบบบริการอัจฉริยะ",
+  "short_name": "EngZ",
+  "name": "การสร้างทางลัดเพื่อเข้าการเรียน EngZ",
   "icons": [
     {
       "src": "icon-192.png",
@@ -15,8 +15,8 @@
     }
   ],
   "start_url": "index.html",
-  "background_color": "#0F172A",
-  "theme_color": "#4F46E5",
+  "background_color": "#022C22",
+  "theme_color": "#065F46",
   "display": "standalone",
   "orientation": "portrait"
 }
