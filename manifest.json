@@ -1,6 +1,6 @@
 {
   "short_name": "EngZ",
-  "name": "การสร้างทางลัดเพื่อเข้าการเรียน EngZ",
+  "name": "เพิ่มทางลัดเข้าเรียน EngZ",
   "icons": [
     {
       "src": "icon-192.png",
@@ -15,8 +15,8 @@
     }
   ],
   "start_url": "index.html",
-  "background_color": "#022C22",
-  "theme_color": "#065F46",
+  "background_color": "#DB2777",
+  "theme_color": "#7C3AED",
   "display": "standalone",
   "orientation": "portrait"
 }
